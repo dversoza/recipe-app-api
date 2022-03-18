@@ -1,4 +1,4 @@
-name: "Run tests via docker-compose"
+name: "Tests"
 on: [push]
 jobs:
   docker:
