@@ -131,4 +131,4 @@ dmypy.json
 # Database files
 *.sqlite3
 *.sqlite3-journal
-/db/
+db/
