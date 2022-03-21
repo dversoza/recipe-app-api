@@ -12,8 +12,17 @@ from recipe.serializers import RecipeSerializer
 
 RECIPES_URL = reverse('recipe:recipe-list')
 
-FAKE_RECIPE = {'title': 'Fake Recipe', 'time_minutes': 30, 'price': 10.00}
-FAKE_RECIPE_2 = {'title': 'Fake Recipe 2', 'time_minutes': 15, 'price': 5.00}
+
+def sample_recipe(user, **params):
+    """Create and return a sample recipe"""
+    defaults = {
+        'title': 'Sample Recipe',
+        'time_minutes': 10,
+        'price': 5.00,
+    }
+    defaults.update(params)
+
+    return Recipe.objects.create(user=user, **defaults)
 
 
 class PublicRecipeApiTests(TestCase):
@@ -34,7 +43,7 @@ class PrivateRecipeApiTests(TestCase):
 
     def setUp(self):
         self.user = get_user_model().objects.create_user(
-            'test@unittes.com',
+            'test@unittest.com',
             'password123'
         )
         self.client = APIClient()
@@ -42,8 +51,8 @@ class PrivateRecipeApiTests(TestCase):
 
     def test_retrieve_recipes(self):
         """Test retrieving a list of recipes"""
-        Recipe.objects.create(user=self.user, **FAKE_RECIPE)
-        Recipe.objects.create(user=self.user, **FAKE_RECIPE_2)
+        sample_recipe(self.user)
+        sample_recipe(self.user, title='Second Recipe')
 
         resp = self.client.get(RECIPES_URL)
 
@@ -59,24 +68,30 @@ class PrivateRecipeApiTests(TestCase):
             'new_user@unittest.com',
             'password123'
         )
-        Recipe.objects.create(user=user2, **FAKE_RECIPE)
-        recipe = Recipe.objects.create(user=self.user, **FAKE_RECIPE_2)
+        sample_recipe(user2)
+        sample_recipe(self.user,)
 
         resp = self.client.get(RECIPES_URL)
 
+        recipes = Recipe.objects.filter(user=self.user)
+        serializer = RecipeSerializer(recipes, many=True)
+
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(len(resp.data), 1)
-        self.assertEqual(resp.data[0]['title'], recipe.title)
-        self.assertNotIn(FAKE_RECIPE_2['title'], resp.data)
+        self.assertEqual(resp.data, serializer.data)
 
     def test_create_recipe_successful(self):
         """Test creating a new recipe"""
-        resp = self.client.post(RECIPES_URL, FAKE_RECIPE)
+        resp = self.client.post(RECIPES_URL, {
+            'title': 'Test Recipe',
+            'time_minutes': 30,
+            'price': 5.00
+        })
 
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
         recipe = Recipe.objects.get(id=resp.data['id'])
-        for key in FAKE_RECIPE.keys():
-            self.assertEqual(FAKE_RECIPE[key], getattr(recipe, key))
+        self.assertEqual(recipe.title, resp.data['title'])
 
     def test_create_recipe_invalid(self):
         """Test creating invalid recipe fails"""
