@@ -132,3 +132,9 @@ dmypy.json
 *.sqlite3
 *.sqlite3-journal
 db/
+
+# IDE specific files
+*.workspace
+*.catkin*
+.idea/
+.vscode/
