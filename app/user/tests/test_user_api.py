@@ -8,11 +8,17 @@ from rest_framework import status
 
 CREATE_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
+ME_URL = reverse('user:me')
 
 TEST_USER = {
     'email': 'test@unittest.com',
-    'password': 'testpass',
+    'password': 'password',
     'name': 'Test User'
+}
+
+NEW_USER = {
+    'name': 'New User',
+    'password': 'new_password',
 }
 
 
@@ -101,4 +107,87 @@ class PublicUserApiTests(TestCase):
         resp = self.client.post(TOKEN_URL, {'email': 'one', 'password': ''})
 
         self.assertNotIn('token', resp.data)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_retrieve_user_unauthorized(self):
+        """Test that authentication is required for users"""
+        resp = self.client.get(ME_URL)
+
+        self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PrivateUserApiTests(TestCase):
+    """Test API requests that require authentication"""
+
+    def setUp(self):
+        self.user = create_user(**TEST_USER)
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_retrieve_profile_success(self):
+        """Test retrieving profile for logged in user"""
+        resp = self.client.get(ME_URL)
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data, {
+            'name': self.user.name,
+            'email': self.user.email
+        })
+
+    def test_update_user_profile(self):
+        """Test updating the user profile for authenticated user"""
+        payload = {
+            'name': NEW_USER['name'],
+            'password': NEW_USER['password']
+        }
+        resp = self.client.patch(ME_URL, payload)
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data, {
+            'email': TEST_USER['email'],
+            'name': NEW_USER['name']}
+        )
+
+    def test_update_user_profile_with_no_password(self):
+        """Test updating the user profile for authenticated user"""
+        payload = {
+            'name': NEW_USER['name'],
+        }
+        resp = self.client.patch(ME_URL, payload)
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data, {
+            'email': TEST_USER['email'],
+            'name': NEW_USER['name']
+        })
+
+    def test_update_user_profile_with_invalid_password(self):
+        """Test updating the user profile for authenticated user"""
+        new_user = {
+            'name': NEW_USER['name'],
+            'password': 'pw'
+        }
+        resp = self.client.patch(ME_URL, new_user)
+
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_user_profile_with_invalid_email(self):
+        """Test updating the user profile for authenticated user"""
+        new_user = {
+            'name': NEW_USER['name'],
+            'email': 'invalid'
+        }
+        resp = self.client.patch(ME_URL, new_user)
+
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_user_profile_with_invalid_email_and_password(self):
+        """Test updating the user profile for authenticated user"""
+        new_user = {
+            'name': 'new name',
+            'email': 'invalid',
+            'password': 'pw'
+        }
+        resp = self.client.patch(ME_URL, new_user)
+
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
