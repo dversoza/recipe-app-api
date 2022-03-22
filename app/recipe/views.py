@@ -4,7 +4,9 @@ from rest_framework.authentication import TokenAuthentication
 
 from core.models import Tag, Ingredient, Recipe
 
-from .serializers import TagSerializer, IngredientSerializer, RecipeSerializer, RecipeDetailSerializer
+from .serializers import (
+    TagSerializer, IngredientSerializer, RecipeSerializer, RecipeDetailSerializer
+)
 
 
 class BaseRecipeAttrViewSet(viewsets.GenericViewSet,
@@ -59,7 +61,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Return appropriate serializer class"""
         if self.action == 'retrieve':
             return RecipeDetailSerializer
-        elif self.action == 'upload_image':
-            return  # RecipeImageSerializer
 
         return self.serializer_class

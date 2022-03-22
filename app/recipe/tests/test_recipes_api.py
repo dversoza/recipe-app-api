@@ -7,8 +7,7 @@ from rest_framework.test import APIClient
 
 from core.models import Recipe, Tag, Ingredient
 
-from recipe.serializers import RecipeSerializer
-
+from recipe.serializers import RecipeSerializer, RecipeDetailSerializer
 
 RECIPES_URL = reverse('recipe:recipe-list')
 
@@ -104,5 +103,5 @@ class PrivateRecipeApiTests(TestCase):
         url = detail_url(recipe.id)
         resp = self.client.get(url)
 
-        serializer = RecipeSerializer(recipe)
+        serializer = RecipeDetailSerializer(recipe)
         self.assertEqual(resp.data, serializer.data)
