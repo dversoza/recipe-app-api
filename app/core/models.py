@@ -78,7 +78,7 @@ class Recipe(models.Model):
     link = models.CharField(max_length=255, blank=True)
     ingredients = models.ManyToManyField('Ingredient')
     tags = models.ManyToManyField('Tag')
-    # image = models.ImageField(null=True, upload_to=f'recipe_images/')
+    image = models.ImageField(null=True, upload_to=f'recipe_images/')
 
     objects = models.Manager()
 
