@@ -4,8 +4,11 @@ from rest_framework.authentication import TokenAuthentication
 
 from core.models import Tag, Ingredient, Recipe
 
-from .serializers import (
-    TagSerializer, IngredientSerializer, RecipeSerializer, RecipeDetailSerializer
+from recipe.serializers import (
+    TagSerializer,
+    IngredientSerializer,
+    RecipeSerializer,
+    RecipeDetailSerializer
 )
 
 
@@ -63,3 +66,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeDetailSerializer
 
         return self.serializer_class
+
+    def perform_create(self, serializer):
+        """Create a new recipe object"""
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        """Update a recipe object"""
+        serializer.save(user=self.request.user)
