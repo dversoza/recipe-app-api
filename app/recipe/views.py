@@ -4,7 +4,7 @@ from rest_framework.authentication import TokenAuthentication
 
 from core.models import Tag, Ingredient, Recipe
 
-from .serializers import TagSerializer, IngredientSerializer, RecipeSerializer
+from .serializers import TagSerializer, IngredientSerializer, RecipeSerializer, RecipeDetailSerializer
 
 
 class BaseRecipeAttrViewSet(viewsets.GenericViewSet,
@@ -54,3 +54,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Return objects for the current authenticated user only"""
         return self.queryset.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        """Return appropriate serializer class"""
+        if self.action == 'retrieve':
+            return RecipeDetailSerializer
+        elif self.action == 'upload_image':
+            return  # RecipeImageSerializer
+
+        return self.serializer_class
